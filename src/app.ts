@@ -28,12 +28,12 @@ app.get('/', (_: express.Request, res: express.Response) => {
 app.get('/flights', (req, res) => {
   const dateFormatText = 'YYYY-MM-DD';
   const { query } = req;
-  if (!query || !query.date) {
-    res.status(400).send(`'date' is a required parameter and must use the following format: ${dateFormatText}`);
+  if (!query) {
+    res.status(400).send('No query information provided');
     return;
   }
 
-  const date = DateTime.fromISO(query.date, { zone: 'utc' });
+  const date = query.date ? DateTime.fromISO(query.date, { zone: 'utc' }) : DateTime.utc();
 
   const seed = date.toISODate();
   if (!seed) {
@@ -85,6 +85,11 @@ app.get('/flights', (req, res) => {
   // Filter results based on destination
   if (query.destination) {
     flights = flights.filter((flight: Flight) => flight.destination.code === query.destination.toUpperCase());
+  }
+
+  // Filter results based on flightNumber
+  if (query.flightNumber) {
+    flights = flights.filter((flight: Flight) => flight.flightNumber === query.flightNumber);
   }
 
   // Respond with matching flights
