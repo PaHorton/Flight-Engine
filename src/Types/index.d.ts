@@ -37,10 +37,24 @@ declare interface Flight {
   duration: FlightDuration;
   departureTime: string;
   arrivalTime: string;
+  delayInfo: FlightDelay;
 }
 
 declare interface FlightQueryParams {
   date: string;
   origin?: string;
   destination?: string;
+}
+
+declare interface FlightDelay {
+    isDelayed: boolean;
+    delayTime: string;
+    status: FlightStatus;
+}
+
+declare interface FlightStatus {
+    baggageLoaded: number;
+    engineCheck: boolean;
+    crewCheck: number;
+    weatherCheck: number;
 }

@@ -1,7 +1,25 @@
 import seedrandom from 'seedrandom';
 import haversine from 'haversine-distance';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import aircraft from './Data/aircraft';
+
+const DELAY_RELIABILITY = .5
+const ENGINE_RELIABILITY = .1
+
+enum Weather {
+    CLEAR = 0,
+    RAIN,
+    SNOW,
+    LIGHTNING,
+    OTHER
+}
+
+enum Crew {
+    READY = 0,
+    WAITING_ON_CONNECTION,
+    RUNNING_LATE,
+    OTHER
+}
 
 const createRandomGenerator = (seed: string): (() => number) => {
   if (seed === undefined || seed === null) {
@@ -67,12 +85,35 @@ export default class Generator {
 
     const arrivalTime = departureTime.plus({ hours: duration.hours, minutes: duration.minutes }).setZone(destination.timezone);
 
+    const isDelayed : boolean = this.random(0,100)/100 < DELAY_RELIABILITY;
+    var minsDelayed = this.random(10,180)
+    const delayTime : string = isDelayed? Duration.fromObject({
+        hours : Math.floor(minsDelayed/60),
+        minutes: minsDelayed % 60
+    }).toISO() : Duration.fromObject({}).toISO();
+
+    var crewCheck : Crew  = isDelayed? this.random(0,Crew.OTHER): Crew.READY;
+    var weatherCheck: Weather = isDelayed? this.random(0,Weather.OTHER): Weather.CLEAR;
+
+    const status : FlightStatus = {
+        baggageLoaded : this.random(0,100)/100,
+        engineCheck : isDelayed? this.random(0,100)/100 < ENGINE_RELIABILITY : true,
+        crewCheck,
+        weatherCheck
+    }
+    const delayInfo: FlightDelay = {
+        isDelayed : isDelayed,
+        delayTime : delayTime,
+        status
+    }
+
     return {
       flightNumber,
       origin,
       destination,
       distance,
       duration,
+      delayInfo,
       departureTime: departureTime.toISO(),
       arrivalTime: arrivalTime.toISO(),
       aircraft: randAircraft,

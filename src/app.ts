@@ -93,7 +93,12 @@ app.get('/flights', (req, res) => {
   }
 
   // Respond with matching flights
-  res.json(flights);
+  if (query.single) {
+      res.json(flights[0]);
+  }
+  else {
+      res.json(flights);
+  }
 });
 
 export default app;
